@@ -19,8 +19,8 @@ def web_help(items):
             <h3>Restaurant List</h3>
             <ul>
         """
-    for item in items:
-        overlay_content += f"<li>{item}</li>"
+    for index, name in enumerate(items):
+        overlay_content += f"<li>{index}.{name}</li>"
     overlay_content += "</ul><button id='closeOverlay'>Close</button></div>"
     return overlay_content
 
@@ -35,3 +35,5 @@ def web_inject(overlay, driver):
                 document.getElementById('customOverlay').remove();
             }};
         """)
+
+
