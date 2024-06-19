@@ -89,7 +89,60 @@ def click_checkbox(driver, label_id):
         print(f"Failed to click the checkbox label with ID '{label_id}': {str(e)}")
 
 
-def main():
+def select_restaurant_by_index(driver, restaurants, index):
+    try:
+        selected_restaurant = list(restaurants.values())[index]
+        print(f"Selecting restaurant: {selected_restaurant}")
+        # Example: Navigate to the selected restaurant URL
+        driver.get(selected_restaurant)
+    except IndexError:
+        print(f"Invalid index: {index}")
+    except Exception as e:
+        print(f"Failed to select restaurant: {str(e)}")
+
+
+def extract_menu_items(driver):
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//li[@data-testid='menu-product']"))
+    )
+    li_elements = driver.find_elements(By.XPATH, "//li[@data-testid='menu-product']")
+    products = []
+
+    for li in li_elements:
+        try:
+            product_name_element = li.find_element(By.XPATH, ".//span[@data-testid='menu-product-name']")
+            product_name = product_name_element.text.strip()
+            products.append(product_name)
+
+        except Exception as e:
+            print(f"An error occurred while processing an item: {str(e)}")
+
+    # Print the dictionary
+    print(products)
+    return products
+
+
+def select_menu_items(driver, index):
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//li[@data-testid='menu-product']"))
+    )
+    item = driver.find_elements(By.XPATH, "//li[@data-testid='menu-product']")
+    item = item[index]
+    # Locate the button within the selected li element
+    button = item.find_element(By.XPATH, ".//button")
+
+    # Scroll the button into view using JavaScript
+    driver.execute_script("arguments[0].scrollIntoView(true);", button)
+    time.sleep(1)  # Ensure the scroll has completed
+
+    # Use ActionChains to click the button
+    actions = ActionChains(driver)
+    actions.move_to_element(button).click().perform()
+
+
+### MAIN STATES
+
+def main_state1():
     url = "https://www.foodora.cz/restaurants/new?lng=15.08762&lat=50.77045&vertical=restaurants"  # Liberec
     # url = 'https://www.foodora.cz/restaurants/new?lng=14.43972&lat=50.08999&vertical=restaurants' #Praha Florenc
     # Initialize Chrome driver using undetected_chromedriver
@@ -120,23 +173,21 @@ def main():
 
                 if option.lower() == 'exit':
                     break
-
-                select_cuisine(option, cuisines, driver)
-
-                if option.lower() == 'home':
+                elif option.lower() == 'home':
                     cuisines = extract_cuisines(driver)
-                if option.lower() == 'restaurace':
+                    web_inject(help_overlay, driver)
+                elif option.lower() == 'restaurace':
                     rest_list = list(resturants.keys())
                     overlay = web_help(rest_list)
                     web_inject(overlay, driver)
-                    # select_restaurant()
-
+                elif option.isdigit() and int(option) < len(rest_list):
+                    select_restaurant_by_index(driver, resturants, int(option))
+                    main_state2(driver)
                 else:
                     web_inject(help_overlay, driver)
+                    select_cuisine(option, cuisines, driver)
 
                 resturants = extract_restaurants(driver)
-                print(list(resturants.keys()))
-
                 time.sleep(1)  # Check every second
         except Exception as e:
             print(f"Exception occurred during interaction: {str(e)}")
@@ -144,5 +195,21 @@ def main():
         driver.quit()
 
 
+def main_state2(driver):
+    menu = extract_menu_items(driver)
+    overlay = web_help(menu, "Výběr z menu")
+    web_inject(overlay, driver)
+
+    try:
+        while True:
+            option = input("Enter cuisine name to select (or 'home' to navigate home, 'exit' to quit): ").strip()
+            if option.lower() == 'exit':
+                break
+            elif option.isdigit() and int(option) < len(menu):
+               item =  select_menu_items(driver, int(option))
+    except Exception as E:
+        print(E)
+
+
 if __name__ == '__main__':
-    main()
+    main_state1()
