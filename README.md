@@ -1,22 +1,22 @@
-# Commandy
+# 25 vybraných voice commandů:
+
 
 - pokracovat
 - ukoncit
 
 - restaurace
 - vyhodne
-- ceska
 - doprava
 - domu
 
 - Alkohol
-- Americká
-- Asijská
+- Americka
+- Asijska
 - Bagety
 - BBQ
 - Bowls
 - Burgery
-- Česká
+- ceska
 - Dezerty
 
 - nula
@@ -29,4 +29,4 @@
 - sedm
 - osm
 - devet
-- deset
+
